@@ -1,7 +1,7 @@
 # MAPM-5
 Mike's Arbitrary Precision Math Library Version 5.0  
 
-Tried many attempts to contact Mikael C. Ring for MAPM long overdue updates (20 years?)  
+Tried many attempts to contact *Michael C. Ring* for MAPM long overdued updates (20 years?)  
 His official website was retired: http://www.tc.umn.edu/~ringx004/mapm-main.html  
   
 I revised his calc.exe demo program into a more useful rpn.exe  
