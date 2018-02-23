@@ -24,6 +24,6 @@ $sum = $mean * $n;
 
 DONE:
 exit if $n == 0;
-printf "Average = %.17g = %.17g / %.f\n", $mean, $sum, $n;
+printf "Average %.17g = %.17g / %.f\n", $mean, $sum, $n;
 exit if $n == 1;
-printf "Std Dev = %.17g\n", sqrt($M2 / ($n-1));
+printf "Std Dev %.17g\n", sqrt($M2 / ($n-1));
