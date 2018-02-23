@@ -24,12 +24,12 @@ Example: data stats
 50050  
   
 > perl stat.pl data       // Welford's method for accurate std-dev  
-Average = 49.999999999999289 = 50049.999999999287 / 1001  
-Std Dev = 28.910811126635725  
+Average 49.999999999999289 = 50049.999999999287 / 1001  
+Std Dev 28.910811126635725  
 
 > perl stat.pl -x data    // exact mode -> wrapper for rpn.exe  
-Average = 50 = 50050 / 1001  
-Std Dev = 28.910811126635657  
+Average 50 = 50050 / 1001  
+Std Dev 28.910811126635657  
 
 > lua stat.lua < data     // 2-passes for accurate std-dev
 Items   1001              // note: my patched lua default to print  
