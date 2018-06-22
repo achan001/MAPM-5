@@ -6,7 +6,7 @@ His official website was retired: http://www.tc.umn.edu/~ringx004/mapm-main.html
   
 I revised his calc.exe demo program into a more useful rpn.exe  
   
-Example: decimal -> IEEE double -> decimal  
+Example: decimal -> IEEE double -> decimal,  also [rpn examples](https://github.com/achan001/MAPM-5/issues/1)
 ```
 > rpn 0.1 g17       // (double) 0.1 17 sig. digits (half-way round-to-even)  
 0.10000000000000001  
