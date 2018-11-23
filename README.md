@@ -3,6 +3,7 @@ Mike's Arbitrary Precision Math Library Version 5.0
 
 Tried many attempts to contact *Michael C. Ring* for this long overdued update (20 years?)  
 His official website was retired: http://www.tc.umn.edu/~ringx004/mapm-main.html  
+**Update**: Mike passes away in December 2011: https://marc.info/?l=lua-l&m=151932549811105&w=2)
   
 I revised his calc.exe demo program into a more useful rpn.exe  
   
