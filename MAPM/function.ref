@@ -1,0 +1,860 @@
+-----------------------------------------------------------------------------
+                        MAPM Function Descriptions                 12-29-2017
+-----------------------------------------------------------------------------
+
+Note: MAPM library is *NOT* thread safe
+Note: MAPM library require FE_TONEAREST, precision 53 bits or higher
+
+-----------------------------------------------------------------------------
+Art of ZERO Programming:
+
+    ZERO is represented internally as 0 * 10 ^ INT32_MIN
+    sign = 0, datalength = 1, exponent = INT32_MIN
+
+    -> if x != 0, m_apm_absolute_compare(x, ZERO) = 1
+
+    this work without checking sign, and is the main reason
+    INT32_MIN was picked as its exponent.
+
+    To output zero more user-friendly way:
+    m_apm_to_string()       treat ZERO as 0E+0 (not 0E-2147483648 !)
+    m_apm_to_fixpt_string() treat ZERO as 0E+1 == "0" (integer)
+
+-----------------------------------------------------------------------------
+Weird properties of INT32_MIN = 0x80000000
+
+    abs(INT32_MIN) = INT32_MIN      // cannot change sign
+    2k * INT32_MIN = 0              // "pushed" away top bit
+    INT32_MIN - 1  = INT32_MAX      // wrap around !!!
+
+-----------------------------------------------------------------------------
+
+char *m_apm_lib_version(char *);
+char *m_apm_lib_short_version(char *);
+
+Example:
+    char lib_version[80];
+    m_apm_lib_version(lib_version);
+    m_apm_lib_short_version(lib_version);
+
+    These 2 functions return the current version of the library.
+    That is, the version of the library when it was compiled.
+
+    The return value is the pointer to the input string. The length
+    of the string will always be < 80 chars.
+
+    'm_apm_lib_version' will fill the string parameter with the
+    following format: (without the double quotes)
+
+    "MAPM Library Version x.y  Copyright (C) 1999-2004, Michael C. Ring"
+    "MAPM Library Version x.y.z  Copyright (C) 1999-2004, Michael C. Ring"
+
+    'm_apm_lib_short_version' will fill the string parameter with
+    the following format: (without the double quotes)
+
+    "x.y"
+    "x.y.z"
+
+    where x,y,z will be single digits indicating the current
+    version : "4.6.1", "4.7", etc.
+
+-----------------------------------------------------------------------------
+M_APM  m_apm_init(void);
+
+Example:
+    M_APM r;
+    r = m_apm_init();
+
+    This function initializes a new MAPM value. The value 0 is
+    assigned to the variable. This function must be called before
+    any MAPM operation is performed on the value. This is because
+    it is analogous to :
+
+    char  *p;
+    .
+    .
+    memset(p, 'A', 100000);
+
+    The above example will likely fail because 'p' does not point
+    to a valid memory block yet. The same is true of an MAPM value
+    that is declared but not yet initialized.
+
+-----------------------------------------------------------------------------
+void  m_apm_free(M_APM);
+
+Example:
+    M_APM r;
+    m_apm_free(r);
+
+    This function will free the memory previously allocated by m_apm_init()
+
+-----------------------------------------------------------------------------
+void  m_apm_free_all_mem(void);
+
+Example:    m_apm_free_all_mem();
+
+        This function will free ALL the memory that MAPM has allocated
+        internally.  It will NOT free variables that the user has
+        initialized from m_apm_init(). The user is responsible for
+        free'ing their own variables. The variables that the user has
+        initialized are still valid MAPM numbers, but you won't be able
+        to do anything useful with them. A call to a MAPM library
+        function will likely result in a crash.
+
+        The intent of this function is to free all MAPM allocated
+        memory once your calculations are complete.
+
+        A subsequent call to 'm_apm_trim_mem_usage()' will re-initialize
+        the library and it will be ready for use again.
+
+-----------------------------------------------------------------------------
+
+Prototype:  void  m_apm_trim_mem_usage(void);
+
+Example:    m_apm_trim_mem_usage();
+
+        This function will reduce the memory used by MAPM to it's
+        initial start-up state.
+
+        The intent of this function is to minimize the memory footprint
+        of MAPM while still maintaining full capabilities.
+
+-----------------------------------------------------------------------------
+
+Prototype:  void  m_apm_cpp_precision(int);
+
+Example:    m_apm_cpp_precision(72);
+
+        This function is only used by the C++ MAPM wrapper class.
+
+        It specifies to the wrapper class the minimum number of
+        significant digits that should be calculated for a given
+        operation. This function specifies only the MINIMUM precision.
+        The example above specifies 72 significant digits. Consider
+        the statement y = sin(x);  If 'x' contains < 72 digits, 'y'
+        will contain 72 digits of precision. If 'x' >= 72 digits,
+        'y' will contain the number of digits that 'x' contains.
+
+            The default is 30.
+
+-----------------------------------------------------------------------------
+
+void M_set_string(M_APM r, const char *str, char **end)
+
+    set r = MAPM value of str, (see below for explanation)
+    *end = location of string after the number
+
+    For example:
+    M_set_string(r, "123.4e20$", &p)
+    r == 123.4e20
+    *p = '$'
+
+-----------------------------------------------------------------------------
+
+MACRO m_apm_set_string(r, str) == M_set_string(r, str, NULL)
+
+    set r = MAPM value of str (note: end pointers discarded)
+    Integers, floating points, scientific notation are supported
+
+    o) Lead-in whitespace is ignored.
+    o) A lead-in '+' sign is optional.
+    o) A negative number must have '-' as the first non-whitespace char
+    o) An exponent, 'E' or 'e', is optional.
+    o) The decimal point is optional. The decimal point may be
+       anywhere in the number, but before the exponent.
+    o) The exponent may have an optional '+' sign.
+    o) The exponent must be an integer value (no decimal point)
+    o) To avoid exponent overflow, only use first 9 sig. digits,
+       i.e. "1.2e01234567890123" == "1.2e123456789"
+
+    m_apm_set_string(r, "-23");
+    m_apm_set_string(r, "1964.425206");
+    m_apm_set_string(r, "-9.344218785E-12");
+    m_apm_set_string(r, "+987622.87633e+27");
+    m_apm_set_string(r, ".0000004217");
+
+-----------------------------------------------------------------------------
+
+void m_apm_set_unsigned(M_APM r, unsigned n);
+
+    set r = MAPM value of n (n >= 0)
+
+-----------------------------------------------------------------------------
+void m_apm_set_long(M_APM r, long n)
+
+    set r = MAPM value of n (n can be negative)
+
+    Both m_apm_set_long and m_apm_set_unsigned set the sign of r first,
+    then call M_set_samesign() which will keep the sign, unless it is zero
+
+-----------------------------------------------------------------------------
+
+void m_apm_set_uint64_t(M_APM r, uint64_t n);
+
+    same as m_apm_set_unsigned(r, n), but for type uint64_t
+
+    Ref: Binary to Decimal Conversion in Limited Precision
+    n -> base 2^16 -> base 10000 -> base 100
+    http://homepage.cs.uiowa.edu/~jones/bcd/decimal.html
+
+-----------------------------------------------------------------------------
+
+void M_set_double(M_APM r, double x, int places)
+    -- build ALL decimal digits of x
+    -- useful if wanted ALL digits (set places = -1)
+    -- useful if wanted correct rounding to places
+
+    Note: For subnormal 0x1p-1074, max digits = 751
+          For big number, max digits = 309
+
+-----------------------------------------------------------------------------
+
+MACRO m_apm_set_double(r, x) == M_set_double(r, x, 16)
+
+    return IEEE double of M_APM value r
+    It return 17 significant decimal digits (round-nearest)
+    Double guaranteed correct conversion
+    Double guaranteed round-trip
+
+    Example: m_apm_set_double(r, 21887.4421964);
+    M_puts(x,-1) => x = 2.1887442196399999E+4
+
+    Most efficient if x is 52 to 53 bits (4.5e15, 9e15)
+    2nd best if 53 to 54 bits (use M_mul_digit) = (9e15, 18e15)
+    Bad if |x| is very small (subnormal is worst)
+
+    If exact conversion is not necessary, "scale" the number
+    close to above to save bit shift calculations.
+
+    Example: in m_apm_sqrt.c, guess = 1/sqrt(dd) = 0.1 to 1
+    -> Scale up the guess value, then drop it down:
+
+    m_apm_set_double(guess, 1e16 / sqrt(dd));
+    guess->m_apm_exponent -= 16;
+
+-----------------------------------------------------------------------------
+
+double m_apm_to_double(M_APM r)
+
+    This function will return a double number with values of r
+    Double is rounded correctly, nearest, round-to-even.
+
+-----------------------------------------------------------------------------
+
+void  m_apm_to_string(char *buf, int places, M_APM x);
+
+    This function will convert an MAPM value into a string and is
+    meant to be used with floating point MAPM values.  The output
+    string must be large enough to hold the result.
+
+    + . (len digits) E + (10 digits) NULL = len + 15
+    --> places + 16 bytes should be enough (to be safe, use 20)
+
+    The string will always be in scientific (exponential) notation.
+    There will be a leading '-' sign for negative numbers.
+    There will be 'places' number of digits after the decimal point.
+
+    If places  > -1, round to places, pad with zeroes if necessary
+    If places == -1, no rounding or zeroes padding
+    If places  < -1, round to -places, no zeroes padding
+
+    If x is == 3.640083E-4 :
+
+    m_apm_to_string(buf, 0, x)      -> "4.E-4"
+    m_apm_to_string(buf, 3, x)      -> "3.640E-4"
+    m_apm_to_string(buf, -3, x)     -> "3.64E-4"
+    m_apm_to_string(buf, 10, x)     -> "3.6400830000E-4"
+    m_apm_to_string(buf, -10, x)    -> "3.640083E-4"
+    m_apm_to_string(buf, -1, x)     -> "3.640083E-4"
+
+-----------------------------------------------------------------------------
+
+Prototype: void  m_apm_to_fixpt_string(char *buf, int places, M_APM x);
+
+    This function will convert an MAPM value into a string and the
+    output will be formatted in fixed point notation. The output
+    string must be large enough to hold the result.
+
+
+    If places  >  0, round to places, pad with zeroes if necessary
+    If places ==  0, rounded to integer, thus no zeroes padding.
+    If places == -1, no rounding or zeroes padding
+    If places  < -1, round to -places, no zeroes padding
+
+    // make sure enough room
+    char buf[M_fixpt_bytes(x, places, 0)];
+
+    If x = "3.64874519999"
+    places      buf
+    10          3.6487452000
+    -10         3.6487452
+    -1          3.64874519999
+    0           4
+
+-----------------------------------------------------------------------------
+
+Prototype:  void  m_apm_to_fixpt_stringex
+(char *buf, int places, M_APM x, char dec, char sep, int cnt);
+
+    The output string must be large enough to hold the result.
+    This function is an extended version of the previous function,
+    there are 3 additional function parameters:
+
+    dec == radix character (default = '.')
+
+    sep, cnt
+
+    Specify a character separator every 'cnt' characters.
+    This is used to split up a large number with a 'delimiter' for
+    easier readability. For example,
+
+    If separator_char = ',' and separator_count = 3, there will be a
+    comma inserted before every group of 3 digits in the output string.
+
+    m_apm_set_string(x, "6123456789.098765321")
+
+    // make sure enough room
+    char buf[M_fixpt_bytes(x, places = 6, cnt = 3)];
+    m_apm_to_fixpt_stringex(buf, places, x, '_', ',', cnt)
+
+    buf will be "6,123,456,789_098765"
+
+    Note that only digits before the radix char are separated.
+    sep == 0 or cnt == 0 is used to disable the 'char separator' feature.
+
+-----------------------------------------------------------------------------
+
+Prototype:  char *m_apm_to_fixpt_stringexp
+(int places, M_APM x, char dec, char sep, int cnt);
+
+    if ((buf = m_apm_to_fixpt_stringexp(...))
+    {
+        puts(buf);      // do something with the string
+        free(buf);      // now free the buffer
+    }
+
+    This function is almost identical to the previous function.
+    The difference is this function will malloc the desired buffer
+    and return it to the caller. In the previous function, the caller
+    supplied the buffer and the output had to fit in that buffer.
+
+    If the malloc in this function fails, NULL will be returned.
+
+    It is the callers responsibility to free the memory which this
+    function 'mallocs'. If the user has re-defined malloc/realloc/free
+    to use their own function wrappers, then your corresponding 'free'
+    function should be used.
+
+-----------------------------------------------------------------------------
+
+Prototype:  void  m_apm_to_integer_string(char *s, M_APM x);
+
+    This function will convert an MAPM value into a string and is
+    meant to be used with integer values. The output string must
+    be large enough to hold the result. If the MAPM number is not
+    an integer, the function will truncate the value to the nearest
+    integer and the output will be formatted as an integer, with a
+    possible leading '-' sign.
+
+    // let len = length of integer digits
+    // sizeof(buf) = sign + len + NULL
+    // sizeof(buf) <= len + 2
+
+    Examples:
+
+    M_APM Value         Output String
+    -----------         -------------
+    3.28E+2             "328"
+    -4.56993E+2         "-456"
+    4.32E-3             "0"
+    -1.62E+5            "-162000"
+
+    If you want the value 'rounded' to the nearest integer (NNN.99
+    becomes NNN+1), use m_apm_to_fixpt_string with 0 decimal places.
+
+-----------------------------------------------------------------------------
+
+void  m_apm_absolute_value(M_APM r, M_APM x);
+
+    This function will put absolute value of x in r.
+    r cannot be the other MAPM parameter.
+
+-----------------------------------------------------------------------------
+
+void  m_apm_negate(M_APM r, M_APM x);
+
+    This function will put -x in r
+    r cannot be the other MAPM parameter.
+
+-----------------------------------------------------------------------------
+
+Prototype:  void  m_apm_copy(M_APM r, M_APM x);
+
+    This function will copy the value of x and put it in r.
+    r cannot be the other MAPM parameter.
+
+-----------------------------------------------------------------------------
+
+void  m_apm_round(M_APM r, int places, M_APM x);
+
+    This function will round x to places
+    It performed round-to-nearest, halfway round-to-even
+    r cannot be the other MAPM parameter.
+
+    If places  > -1, will round to places
+    If places == -1, no rounding, r == x
+    If places  < -1, will round to -places
+
+-----------------------------------------------------------------------------
+
+void m_apm_iround(M_APM r, int places)
+
+    INPLACE rounding of M_APM number
+    It performed round-to-nearest, halfway round-to-even
+    E.g. round to tens: 12345 -> 12340
+
+    Actually m_apm_round() call this after creating a copy
+
+-----------------------------------------------------------------------------
+
+void m_apm_ichop(M_APM r, int places)
+
+    INPLACE chopping of M_APM number to places
+
+-----------------------------------------------------------------------------
+
+void  m_apm_iround_fixpt(M_APM r, int places)
+
+    INPLACE fixpt rounding relative to decimal point
+    It performed round-to-nearest, halfway round-to-even
+
+    If number = 123.456
+    places   return
+    0        123
+    1        123.5
+    -1       120
+    -2       100
+    <= -3    0
+
+    round-to-even sometimes == round-to-0:
+    500 to -3 places (closest thousands) -> 0
+
+-----------------------------------------------------------------------------
+
+int m_apm_compare(M_APM a, M_APM b);
+
+    This function will compare the value of a vs b
+    The function will return :
+
+    -1 : a < b
+     0 : a = b
+     1 : a > b
+
+-----------------------------------------------------------------------------
+
+int m_apm_sign(M_APM x);
+
+    This function will return the sign of x.
+    The function will return :
+
+    -1 : num < 0
+     0 : num = 0
+     1 : num > 0
+
+-----------------------------------------------------------------------------
+
+int m_apm_exponent(M_APM x);
+
+    This function will return the exponent of x.
+
+    3.86742E+12,    12 will be returned.
+    9.61082E-56,   -56 will be returned.
+    0.0              0 will be returned.
+
+-----------------------------------------------------------------------------
+
+int m_apm_significant_digits(M_APM x);
+
+    This function will return the number of significant digits
+    in x. This may be used to determine how big to malloc
+    a char array so the full number can be converted to a string.
+
+    3.86742E+12    6 will be returned.
+    -96108.27608   10 will be returned.
+
+-----------------------------------------------------------------------------
+
+int m_apm_is_integer(M_APM x);
+
+    This function will return 1 if x is an integer, 0 otherwise
+
+-----------------------------------------------------------------------------
+
+int m_apm_is_odd(x):
+
+    This function return 1 if x is odd, 0 if not.
+    An input value that is not an integer will result in
+    a warning on stderr and the return value is undefined.
+
+MACRO m_apm_is_even(M_APM x) == ! m_apm_is_odd(x)
+
+-----------------------------------------------------------------------------
+
+void m_apm_set_random_seed(const char *);
+
+    Example: m_apm_set_random_seed("12345678");
+
+    This function will set the random number generator seed.
+
+    The char string argument should correspond to any *integer*
+    value between 0 and (1.0E+15 - 1).
+
+    This function can be called at any time.
+
+-----------------------------------------------------------------------------
+
+void m_apm_get_random(M_APM);
+
+    This function will return a random floating point number
+    between the values 0 and 1. The first time the function is
+    called the generator is initialized with the system time.
+    This generator will not repeat its pattern until 1.0E+15
+    numbers have been generated.
+
+    Note that the MAPM parameter passed may be used for other
+    purposes. The function itself maintains the correct sequence
+    and just returns a copy of the next random number.
+
+-----------------------------------------------------------------------------
+
+void m_apm_add(M_APM r, M_APM a, M_APM b);
+
+    r = a + b,
+    r cannot be one of the other MAPM parameters.
+
+-----------------------------------------------------------------------------
+
+void m_apm_subtract(M_APM r, M_APM a, M_APM b);
+
+    r = a - b,
+    r cannot be one of the other MAPM parameters.
+
+-----------------------------------------------------------------------------
+
+void M_mul_digit(M_APM r, M_APM x, int n)
+
+    r = x * n, a 2 digits number between 0 to 99
+
+    *** NOTE : r can be same as x ***
+    *** NOTE : no error check on the range of n (make sure 0 <= n <= 99)
+
+    Example:
+    M_mul_digit(pow_2, pow_2, 2);
+    M_mul_digit(r, x, 13)
+
+MACRO M_mul_digit_exp(r, x, n, dexp): r = x * n * 10 ** dexp
+
+-----------------------------------------------------------------------------
+
+void m_apm_ishift(M_APM r, int n)
+
+    r *= 2 ** n,
+    n can be any integer
+
+-----------------------------------------------------------------------------
+
+void m_apm_multiply(M_APM r, M_APM x, M_APM y);
+
+    r = x * y, EXACT without rounding
+
+-----------------------------------------------------------------------------
+
+void m_apm_divide(M_APM r, int places, M_APM a, M_APM b);
+
+    r = x / y, accurate to places
+
+    it uses M_apm_divide for places < FAST_DIV,
+    which produce correctly rounded digits in places
+
+    For places >= FAST_DIV, it use m_apm_reciprocal
+
+    r = x * (1/y), rounded to places
+
+    it is MUCH faster, however, last digit cannot be guaranteed.
+
+    Division by zero set r to 0 and a warning on stderr.
+
+-----------------------------------------------------------------------------
+
+void  M_apm_divide(M_APM r, int places, M_APM a, M_APM b);
+
+    r = a / b, accurate to slightly more than places
+
+    it does not returned r rounded to places.
+    It does not even normalized the result
+
+    The setup is to allow correctly round-toward-zero *AND*
+    rounded-to-nearest (using trailing zeroes for hint)
+
+    Chop mode is used by m_apm_integer_divide() and
+    m_apm_integer_div_rem() to produce EXACT result.
+
+    After figuring out 'places', chop mode work like this:
+
+    M_apm_divide(r, places, a, b);
+    m_apm_ichop(r, places);         // *correctly* chop to places
+
+    Round-to-nearest mode is used by m_apm_divide() for
+    small divides (~ 180 digits)
+
+    To get r correctly rounded to places, just do this:
+
+    M_apm_divide(r, places, a, b);  // guarantee enough to round
+    m_apm_iround(r, places);        // *correctly* to places
+
+-----------------------------------------------------------------------------
+
+void  m_apm_reciprocal(M_APM r, int p, M_APM x);
+
+    r = 1 / x, with p places
+    It call M_apm_reciprocal, then round it down to p places
+
+    1/0 is undefined, and will abort with error
+
+-----------------------------------------------------------------------------
+
+void  m_apm_integer_divide(M_APM q, M_APM a , M_APM b);
+
+    q = int(a / b)
+
+-----------------------------------------------------------------------------
+
+void  m_apm_integer_div_rem(M_APM q , M_APM r, M_APM a, M_APM b);
+
+    q = int(a/b)                // assumed b != 0
+    r = a - q * b
+    -> |r| < |b|
+    -> sgn(r) = sgn(a) or 0     // same behavior in C language
+
+    If desired r >= 0, add the following code snippet:
+
+    if (r->m_apm_sign < 0) {
+      M_APM tmp = M_get_stack_var();    // Goal: a = (q - sgn(b)) b + (r + |b|)
+      m_apm_copy(tmp, q);               // if q needed update too
+      if (b->m_apm_sign == -1) m_apm_add(q, tmp, MM_One);
+      else m_apm_subtract(q, tmp, MM_One);
+      m_apm_copy(tmp, r);
+      M_sub_samesign(r, tmp, b);        // r' = sgn(r) * (|r| - |b|) = r + |b|
+      M_restore_stack(1);
+    }
+
+-----------------------------------------------------------------------------
+
+void  m_apm_factorial(M_APM r , M_APM x);
+
+    x must be non-negative integer < 1e8
+    int n = integer value of x
+
+    r = n * (n - 1) * (n - 2) ... 1
+
+    r CAN be x, since internally it called M_factorial(r, n)
+
+    For invalid value of x -> warn to stderr and set r = 0
+
+    NOTE: 1e8 ! = 1.6172E+756570556 (with datalength > 700 million !)
+
+-----------------------------------------------------------------------------
+
+void m_apm_floor(M_APM r, M_APM x);
+
+    r = biggest integer <= x
+    r cannot be same as x
+
+void m_apm_ceil(M_APM r, M_APM x);
+
+    r = smallest integer >= x
+    r cannot be same as x
+
+void m_apm_integer(M_APM r , M_APM x);
+
+    For x >= 0, same as m_apm_floor()
+    For x <  0, same as m_apm_ceil()
+
+void  m_apm_fraction(M_APM r , M_APM x);
+
+    r = x - int(x)
+
+void m_apm_away(M_APM r , M_APM x);
+
+    For x >= 0, same as m_apm_ceil()
+    For x <  0, same as m_apm_floor()
+
+void M_add_digit(M_APM r, int d)
+
+    helper function for above, except m_apm_integer, m_apm_fraction
+    r = int(r) + sgn(r) * d, d = [1, 100]
+
+    If d == 0, r is UNTOUCHED
+    -> If r was integer, range of d = [0, 100]
+    -> Example: see rpn.c hex_float() for adding hexdigits (d = [0, 16])
+
+    WARNING: no error checking performed on d, so DIY
+
+-----------------------------------------------------------------------------
+
+void  m_apm_gcd(M_APM r, M_APM a , M_APM b);
+
+    r = gcd(a, b)
+    r cannot be same as a or b
+    Non-integer inputs will warn on stderr, and set r = 0
+
+-----------------------------------------------------------------------------
+
+void  m_apm_lcm(M_APM r, M_APM a , M_APM b);
+
+    r = a * b / gcd(a, b)
+
+-----------------------------------------------------------------------------
+
+void M_sqrt_flip(M_APM r, int places, M_APM x, int flip)
+
+    If flip == 0,  r = sqrt(x)
+    Otherwise, r = 1 / sqrt(x)
+
+    r is CHOPPED to places + 6, to avoid double rounding
+    m_apm_sqrt == M_sqrt_flip (flip = 0) -> round to places
+
+-----------------------------------------------------------------------------
+
+void m_apm_sqrt(M_APM r, int places, M_APM x);
+
+    r = sqrt(x), accurate to places
+    r cannot be same as x
+    if x < 0: warn on stderr, and set r = 0
+
+-----------------------------------------------------------------------------
+
+void m_apm_cbrt(M_APM r, int places, M_APM x);
+
+    r = x ^ (1/3), accurate to places
+    r cannot be same as x
+
+-----------------------------------------------------------------------------
+
+void m_apm_log(M_APM r, int places, M_APM x);
+
+    r = log(x) (base = e = 2.71828 ...), accurate to places
+
+    x <= zero will set r = 0 and warning on stderr.
+
+-----------------------------------------------------------------------------
+
+void m_apm_log10(M_APM r, int places, M_APM x);
+
+    r = log(x) (base = 10), accurate to places
+
+    x <= zero will set r = 0 and warning on stderr.
+
+-----------------------------------------------------------------------------
+
+void m_apm_exp(M_APM r, int places, M_APM x);
+
+    r = e ^ x, accurate to places
+
+    If x is too large (>= 1E9), there will be a
+    warning on stderr and the result will be zero.
+
+-----------------------------------------------------------------------------
+
+void m_apm_pow(M_APM r , int places , M_APM x , M_APM y);
+
+    r = x ^ y, accurate to places
+
+    most cases r = exp(log(x) * y)
+
+    For integer y < 1E9, it uses faster m_apm_integer_pow
+    Example: rpn.exe can calculate p = 2 ^ 57885161 - 1 with pow
+
+    rpn 0x1p57885161 1- ?i k            // use m_apm_integer_pow_nr
+    rpn =99999999 2 57885161p 1- ?i k   // use m_apm_integer_pow
+
+-----------------------------------------------------------------------------
+
+void m_apm_integer_pow(M_APM r, int places, M_APM x, int n);
+
+    r = x ** n, rounded to places
+    r cannot be same as x
+    n can be positive AND negative
+
+-----------------------------------------------------------------------------
+
+void m_apm_integer_pow_nr(M_APM r, M_APM x, unsigned n);
+
+    r = x ** n (exact without rounding)
+    r cannot be same as x
+    n cannot be negative
+
+    This function is similar to the above function except the
+    result is NOT ROUNDED (_nr). This function would typically be
+    used when full precision of the result is desired.
+
+-----------------------------------------------------------------------------
+
+void M_pow_mod(M_APM z, M_APM x, M_APM m);
+
+    z = x ** z % m
+
+    Input: z, x, m must all be integer, z >= 0, m != 0
+    Output: -|m| < z < |m|
+
+    no input error checking performed, so DIY
+    If x >= 0, output z >= 0, otherwise z likely negative
+    If desired output z >= 0, see code snippet in m_apm_integer_div_rem
+
+-----------------------------------------------------------------------------
+
+void m_apm_sin(M_APM r, int places, M_APM x);
+
+    set r = sin(x), accurate to places
+
+void m_apm_cos(M_APM r, int places, M_APM x);
+
+    set r = sin(x), accurate to places
+
+    x has unit of radians
+    r cannot be same as x
+
+void m_apm_tan(M_APM r, int places , M_APM x)
+
+    set r = tan(x), accurate to places
+    uses result from above m_apm_sin_cos()
+    Use identity: r = sin_val / cos_val
+
+void m_apm_sin_cos(M_APM sin_val, M_APM cos_val, int places , M_APM x)
+
+    same as above but set sin_val and cos_val in 1 call
+    More efficient than call each function separately.
+    sin_val, cos_val, x cannot be each other
+
+similarly for arc functions:
+
+function        alias            domain     range
+m_apm_arcsin    m_apm_asin       [-1, 1]    [-PI/2, PI/2]
+m_apm_arccos    m_apm_acos       [-1, 1]    [0, PI]
+m_apm_arctan    m_apm_atan        (real)    [-PI/2, PI/2]
+m_apm_arctan2   m_apm_atan2 (real, real)    [-PI, PI]
+
+-----------------------------------------------------------------------------
+
+void m_apm_sinh(M_APM r, int places, M_APM x)   r = sinh(x)
+void m_apm_cosh(M_APM r, int places, M_APM x)   r = cosh(x)
+void m_apm_tanh(M_APM r, int places, M_APM x)   r = tanh(x)
+
+similarly for hyperbolic arc XXX version
+
+function        alias           domain
+m_apm_arcsinh   m_apm_asinh     whole real line
+m_apm_arccosh   m_apm_acosh     [1, +inf)
+m_apm_arctanh   m_apm_atanh     (-1, 1)
+
+-----------------------------------------------------------------------------
