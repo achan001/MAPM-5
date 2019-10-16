@@ -232,9 +232,96 @@ M_restore_stack(4);
 }
 
 /****************************************************************************/
+/*
+ * define a notation for a function 'R' :
+ *
+ *
+ *
+ *                                    1
+ *      R (a0, b0)  =  ------------------------------
+ *
+ *                          ----
+ *                           \
+ *                            \     n-1      2    2
+ *                      1  -   |   2    *  (a  - b )
+ *                            /              n    n
+ *                           /
+ *                          ----
+ *                         n >= 0
+ *
+ *
+ *      where a, b are the classic AGM iteration :
+ *
+ *
+ *      a    =  0.5 * (a  + b )
+ *       n+1            n    n
+ *
+ *
+ *      b    =  sqrt(a  * b )
+ *       n+1          n    n
+ *
+ *
+ *
+ *      Define a variable 'c' for more efficient computation :
+ *
+ *                             2        2     2
+ *      c = a   -  b    ==>   c  = 4 ( a  -  b )
+ *           n-1    n-1                 n     n
+ *
+ */
+
+/****************************************************************************/
+void M_log_AGM_R_func(M_APM rr, int places, M_APM aa, M_APM bb)
+{
+    M_APM tmpA0 = M_get_stack_var();
+    M_APM tmpB0 = M_get_stack_var();
+    M_APM tmpC2 = M_get_stack_var();
+    M_APM tmp1  = M_get_stack_var();
+    M_APM tmp2  = M_get_stack_var();
+    M_APM sum   = M_get_stack_var();
+
+    int tolerance = -((places + 8) >> 1);
+    int dplaces   = places + 16;
+
+    m_apm_copy(tmpA0, aa);
+    m_apm_copy(tmpB0, bb);
+    m_apm_square(rr, MM_0_5);       /* rr = 0.25 */
+
+    m_apm_square(tmp1, aa);         /* sum = 0.5*(a^2 - b^2) */
+    m_apm_square(tmp2, bb);
+    m_apm_subtract(sum, tmp1, tmp2);
+    sum->m_apm_exponent -= 2;
+    M_mul_digit(sum, sum, 50);
+    
+    while (TRUE) {
+        m_apm_subtract(tmp1, tmpA0, tmpB0);     /* C = An - Bn */
+        m_apm_square(tmpC2, tmp1);              /* C ^ 2 */        
+        m_apm_multiply(tmp1, rr, tmpC2);
+        m_apm_add(tmp2, sum, tmp1);
+        
+        if (tmp1->m_apm_exponent < tolerance) break;
+        
+        M_mul_digit(rr, rr, 2);
+        SWAP(M_APM, sum, tmp2);
+        m_apm_iround(sum, dplaces);
+
+        m_apm_add(tmp1, tmpA0, tmpB0);          /* do the AGM */
+        m_apm_multiply(tmp2, tmpA0, tmpB0);
+        m_apm_sqrt(tmpB0, dplaces, tmp2);
+        tmp1->m_apm_exponent -= 2;
+        M_mul_digit(tmpA0, tmp1, 50);
+        m_apm_iround(tmpA0, dplaces);
+    }
+
+    m_apm_subtract(tmp1, MM_One, tmp2);
+    m_apm_reciprocal(rr, places, tmp1);
+
+    M_restore_stack(6);
+}
+/****************************************************************************/
 
 /*
- *	calculate log using an AGM algorithm.
+ *	calculate log using above AGM algorithm.
  */
 
 void	log_local(M_APM outval, int places, M_APM inval)
