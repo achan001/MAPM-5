@@ -13,8 +13,8 @@ void M_raw_sin(M_APM rr, int places, M_APM xx)
 
   m_apm_square(rr, xx);
 
-  if (places < 0) places = ~places; // simulate sinh(x)
-  else    rr->m_apm_sign *= -1;
+  if (places < 0) places = ~places; // do sinh(x)
+  else    rr->m_apm_sign *= -1;     // do  sin(x)
 
   m_apm_copy(sum, xx);
   m_apm_copy(term, xx);

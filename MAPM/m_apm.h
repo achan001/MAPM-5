@@ -19,8 +19,8 @@ typedef struct {
 
 typedef M_APM_struct *M_APM;
 
-#define MAPM_LIB_SHORT_VERSION "5.0"
-#define MAPM_LIB_VERSION "MAPM Library Version 5.0 "\
+#define MAPM_LIB_SHORT_VERSION "5.1"    // 10/16/2019
+#define MAPM_LIB_VERSION "MAPM Library Version 5.1 "\
         "Copyright (C) 1999-2007, Michael C. Ring"
 
 #include <stdio.h>
@@ -220,7 +220,6 @@ void    M_apm_log(M_APM, int, M_APM);
 void    M_log_near_1(M_APM, int, M_APM);
 void    M_log_basic_iteration(M_APM, int, M_APM);
 void    M_log_35_places(M_APM, M_APM);
-void    M_log_AGM_R_func(M_APM, int, M_APM, M_APM);
 void    M_check_log_places(int);
 
 void    M_realloc(M_APM r, unsigned n);

@@ -8,11 +8,11 @@
 //
 void M_check_PI_places(int places)
 {
-  int dplaces = places + 2;
-  if (dplaces < MM_lc_PI_digits) return;
+  if ((places += 6) <= MM_lc_PI_digits) return;
 
-  MM_lc_PI_digits = dplaces + 3;
-  M_calculate_PI_AGM(MM_lc_PI, (dplaces + 5));
+  MM_lc_PI_digits = (places += 6);
+  M_calculate_PI_AGM(MM_lc_PI, places);
+
   M_mul_digit(MM_lc_2_PI, MM_lc_PI, 2);
   M_mul_digit(MM_lc_HALF_PI, MM_lc_PI, 50);
   MM_lc_HALF_PI->m_apm_exponent -= 2;
