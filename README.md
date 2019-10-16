@@ -1,5 +1,5 @@
 # MAPM-5
-Mike's Arbitrary Precision Math Library Version 5.0  
+Mike's Arbitrary Precision Math Library Version 5.1  
 
 Tried many attempts to contact *Michael C. Ring* for this long overdued update (20 years?)  
 His official website was retired: http://www.tc.umn.edu/~ringx004/mapm-main.html  
