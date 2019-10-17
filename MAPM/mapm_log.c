@@ -11,9 +11,9 @@ void M_apm_log(M_APM r, int places, M_APM x)
   int xexp = x->m_apm_exponent;
   M_APM tmp0 = M_get_stack_var();
 
-  if ((unsigned) xexp < 2U) {
+  if ((unsigned) xexp < 2U) {       /* 0.01 < x < 10 */
     M_sub_samesign(tmp0, x, MM_One);
-    if (tmp0->m_apm_exponent < -2)
+    if (tmp0->m_apm_exponent < -3)  /* |x-1| < 1e-3 */
       M_log_near_1(r, places, tmp0);
     else
       M_log_basic_iteration(r, places, x);
@@ -22,19 +22,17 @@ void M_apm_log(M_APM r, int places, M_APM x)
   }
 
   /* log (m * 10 ^ n) = log(m) + n * log(10) */
-  /* minimize |log(m)| to speed up M_apm_exp */
-
-  int base = (x->m_apm_data[0] < 32);
-
-  x->m_apm_exponent = base;
+  
+  int base = (xexp > 0);      /* log(m) and n same sign */
+  x->m_apm_exponent = base;   /* 0.1 < m < 10 */
   M_log_basic_iteration(tmp0, places, x);
   x->m_apm_exponent = xexp;   /* restore x */
 
   M_APM tmp1 = M_get_stack_var();
   m_apm_set_long(r, xexp - base);
-
   M_check_log_places(places);
   m_apm_multiply(tmp1, r, MM_lc_LOG_10);
+  
   m_apm_add(r, tmp0, tmp1);
   M_restore_stack(2);
 }

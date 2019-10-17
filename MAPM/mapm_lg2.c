@@ -1,8 +1,7 @@
 #include "m_apm.h"
 
 /*
- * Calculate log(N)
- * N = 0.1 to 10 -> log(N) = -2.3 to 2.3
+ * Calculate log(N), N assumed can convert to double
  *
  * use M_log_35_places to get X = log(N) to 35 places
  *
@@ -38,7 +37,7 @@ void M_log_basic_iteration(M_APM r, int places, M_APM N)
 
 /*
  * calculate log(N) 35 places accurate
- * N = 0.1 to 10 -> log(N) = -2.3 to 2.3
+ * N assumed can convert to double
  *
  * Use the following iteration to estimate for log :
  * This is a cubically convergent algorithm
