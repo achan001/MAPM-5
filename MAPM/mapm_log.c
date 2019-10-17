@@ -28,7 +28,7 @@ void M_apm_log(M_APM r, int places, M_APM x)
 
   x->m_apm_exponent = base;
   M_log_basic_iteration(tmp0, places, x);
-  x->m_apm_exponent = xexp;   /* restore a */
+  x->m_apm_exponent = xexp;   /* restore x */
 
   M_APM tmp1 = M_get_stack_var();
   m_apm_set_long(r, xexp - base);

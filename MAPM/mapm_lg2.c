@@ -20,7 +20,6 @@ void M_log_basic_iteration(M_APM r, int places, M_APM N)
   M_APM tmpX = M_get_stack_var();
 
   M_log_35_places(tmpX, N);
-  m_apm_iround(tmpX, 35);
 
   tmpX->m_apm_sign *= -1;
   M_apm_exp(tmp1, places + 2, tmpX);
