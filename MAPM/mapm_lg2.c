@@ -1,43 +1,7 @@
 #include "m_apm.h"
 
 /*
- * Calculate log(N), N assumed can convert to double
- *
- * use M_log_35_places to get X = log(N) to 35 places
- *
- * let Y = N * exp(-X) - 1 (Y should be very small)
- *
- * log(N) = X + log(1 + Y) (use the efficient log_near_1 )
- */
-
-void M_log_basic_iteration(M_APM r, int places, M_APM N)
-{
-  if (places <= 35) {M_log_35_places(r, N); return;}
-
-  M_APM tmp0 = M_get_stack_var();
-  M_APM tmp1 = M_get_stack_var();
-  M_APM tmpX = M_get_stack_var();
-
-  M_log_35_places(tmpX, N);
-
-  tmpX->m_apm_sign *= -1;
-  M_apm_exp(tmp1, places + 2, tmpX);
-  m_apm_iround(tmp1, places + 8);
-  tmpX->m_apm_sign *= -1;
-
-  m_apm_multiply(tmp0, tmp1, N);
-  m_apm_subtract(tmp1, tmp0, MM_One);
-  m_apm_iround(tmp1, places - 29);
-  M_log_near_1(tmp0, (places - 35), tmp1);
-  m_apm_add(r, tmpX, tmp0);
-  M_restore_stack(3);
-}
-
-/****************************************************************************/
-
-/*
- * calculate log(N) 35 places accurate
- * N assumed can convert to double
+ * calculate log(N), 0.1 <= N < 10 and |N-1| >= 1e-3
  *
  * Use the following iteration to estimate for log :
  * This is a cubically convergent algorithm
@@ -47,27 +11,29 @@ void M_log_basic_iteration(M_APM r, int places, M_APM N)
  *               exp(X) + N
  *
  * Accuracy of X = 13 to 14 places
- * Accuracy of r = 40 places > 35 places
+ * Accuracy of r ~ 40 places > 35 places
+ *
+ * Note: for N ~ 1, exp(X) required more digits
 */
 
-void M_log_35_places(M_APM r, M_APM N)
+static void M_log_35_places(M_APM r, M_APM N)
 {
   M_APM tmp0 = M_get_stack_var();
   M_APM tmp1 = M_get_stack_var();
   M_APM tmpX = M_get_stack_var();
 
-  double dd = m_apm_to_double(N);
-  m_apm_set_double(tmpX, 1e17 * log(dd));
-  if (tmpX->m_apm_sign) tmpX->m_apm_exponent -= 17;
+  double dd = m_apm_to_double(r);   // assumed r = N-1
+  m_apm_set_double(tmpX, 1e19 * log1p(dd));
+  tmpX->m_apm_exponent -= 19;       // |X| > 0.0009995
   M_apm_exp(r, 35, tmpX);
-  m_apm_iround(r, 41);
+  m_apm_iround(r, 43);
 
   M_sub_samesign(tmp0, r, N);
   M_add_samesign(tmp1, r, N);
-  m_apm_iround(tmp0, 41);
-  m_apm_iround(tmp1, 41);
+  m_apm_iround(tmp0, 43);
+  m_apm_iround(tmp1, 43);
 
-  M_apm_divide(r, 41 - 15, tmp0, tmp1);
+  M_apm_divide(r, 43 - 16, tmp0, tmp1);
   M_mul_digit(tmp0, r, 2);
   m_apm_subtract(r, tmpX, tmp0);
   M_restore_stack(3);
@@ -86,27 +52,28 @@ void M_log_35_places(M_APM r, M_APM N)
  *       [ 1 - y ]                  3       5       7
 */
 
-void M_log_near_1(M_APM r, int places, M_APM xx)
+static void M_log_near_1(M_APM r, int places, M_APM x)
 {
   M_APM tmpS = M_get_stack_var();
   M_APM tmp0 = M_get_stack_var();
   M_APM tmp1 = M_get_stack_var();
+  M_APM xsqr = M_get_stack_var();
   M_APM term = M_get_stack_var();
 
-  places += 12U - xx->m_apm_exponent;
+  places += 12U - x->m_apm_exponent;
   int dplaces = places + 6U;
 
-  m_apm_add(term, xx, MM_Two);
-  m_apm_divide(tmpS, dplaces, xx, term);
+  m_apm_add(term, x, MM_Two);
+  m_apm_divide(tmpS, dplaces, x, term);
   m_apm_copy(term, tmpS);
-  m_apm_square(r, tmpS);
+  m_apm_square(xsqr, tmpS);
 
-  int tolerance = 6U - places - r->m_apm_exponent;
+  int tolerance = 6U - places - xsqr->m_apm_exponent;
 
   for(int m1=3; term->m_apm_exponent >= tolerance; m1+=2)
   {
-    m_apm_iround(r, dplaces);
-    m_apm_multiply(tmp0, term, r);
+    m_apm_iround(xsqr, dplaces);
+    m_apm_multiply(tmp0, term, xsqr);
 
     dplaces = places + tmp0->m_apm_exponent;
     SWAP(M_APM, tmp0, term);
@@ -117,6 +84,42 @@ void M_log_near_1(M_APM r, int places, M_APM xx)
     m_apm_add(tmp1, tmpS, tmp0);
     SWAP(M_APM, tmpS, tmp1);
   }
-  M_mul_digit(r, tmpS, 2);
-  M_restore_stack(4);
+  M_mul_digit(r, tmpS, 2);  // NOTE: M_log_near_1(r, places, r) OK
+  M_restore_stack(5);
+}
+
+/****************************************************************************/
+
+/*
+ * Calculate log(N), 0.1 <= N < 10
+ *
+ * use M_log_35_places to get X = log(N) to 35 places
+ *
+ * let Y = N * exp(-X) - 1 (Y should be very small)
+ *
+ * log(N) = X + log(1 + Y) (use the efficient log_near_1 )
+ */
+
+void M_log_basic_iteration(M_APM r, int places, M_APM N)
+{
+  m_apm_subtract(r, N, MM_One);
+  if (r->m_apm_exponent < -3) {M_log_near_1(r, places, r); return;}
+
+  M_log_35_places(r, N);    // NOTE: required r = N-1
+  if (places <= 35) return;
+
+  M_APM tmp0 = M_get_stack_var();
+  M_APM tmpX = M_get_stack_var();
+
+  m_apm_negate(tmpX, r);
+  M_apm_exp(r, places + 2, tmpX);
+  m_apm_iround(r, places + 8);
+
+  m_apm_multiply(tmp0, r, N);
+  m_apm_subtract(r, tmp0, MM_One);
+  m_apm_iround(r, places - 29);
+
+  M_log_near_1(tmp0, places - 35, r);
+  m_apm_subtract(r, tmp0, tmpX);
+  M_restore_stack(2);
 }

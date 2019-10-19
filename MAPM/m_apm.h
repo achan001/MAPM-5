@@ -217,9 +217,7 @@ void    M_calculate_PI_AGM(M_APM, int);
 void    M_integer_pos_pow(M_APM r, int dplaces, M_APM x, unsigned n);
 void    M_apm_exp(M_APM, int, M_APM);
 void    M_apm_log(M_APM, int, M_APM);
-void    M_log_near_1(M_APM, int, M_APM);
 void    M_log_basic_iteration(M_APM, int, M_APM);
-void    M_log_35_places(M_APM, M_APM);
 void    M_check_log_places(int);
 
 void    M_realloc(M_APM r, unsigned n);
