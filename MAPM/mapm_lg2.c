@@ -12,8 +12,6 @@
  *
  * Accuracy of X = 13 to 14 places
  * Accuracy of r ~ 40 places > 35 places
- *
- * Note: for N ~ 1, exp(X) required more digits
 */
 
 static void M_log_35_places(M_APM r, M_APM N)
@@ -30,8 +28,8 @@ static void M_log_35_places(M_APM r, M_APM N)
 
   M_sub_samesign(tmp0, r, N);
   M_add_samesign(tmp1, r, N);
-  m_apm_iround(tmp0, 43);
-  m_apm_iround(tmp1, 43);
+  m_apm_iround(tmp0, 43 - 14);
+  m_apm_iround(tmp1, 43 - 14);
 
   M_apm_divide(r, 43 - 16, tmp0, tmp1);
   M_mul_digit(tmp0, r, 2);
@@ -117,9 +115,9 @@ void M_log_basic_iteration(M_APM r, int places, M_APM N)
 
   m_apm_multiply(tmp0, r, N);
   m_apm_subtract(r, tmp0, MM_One);
-  m_apm_iround(r, places - 29);
+  m_apm_iround(r, places - 30);
 
-  M_log_near_1(tmp0, places - 35, r);
+  M_log_near_1(tmp0, places - 36, r);
   m_apm_subtract(r, tmp0, tmpX);
   M_restore_stack(2);
 }
