@@ -1,5 +1,11 @@
 #include "m_apm.h"
 
+#ifdef __GNUC__
+#define LOG1P(x)  log1p(x)
+#else   // tcc does not have log1p()
+#define LOG1P(x)  ({double _y=1+(x); log(_y)-(_y-1-(x))/_y;})
+#endif
+
 /*
  * calculate log(N), 0.1 <= N < 10 and |N-1| >= 1e-3
  *
@@ -21,7 +27,7 @@ static void M_log_35_places(M_APM r, M_APM N)
   M_APM tmpX = M_get_stack_var();
 
   double dd = m_apm_to_double(r);   // assumed r = N-1
-  m_apm_set_double(tmpX, 1e19 * log1p(dd));
+  m_apm_set_double(tmpX, 1e19 * LOG1P(dd));
   tmpX->m_apm_exponent -= 19;       // |X| > 0.0009995
   M_apm_exp(r, 35, tmpX);
   m_apm_iround(r, 43);

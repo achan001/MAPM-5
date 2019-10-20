@@ -1,10 +1,10 @@
 #include "m_apm.h"
-#define max(a,b) ((a)>(b)?(a):(b))
+#define max(a,b)  ((a)>(b)?(a):(b))
 
 #ifdef __GNUC__
 #define GUESS(x)  (1/cbrt(x))
 #else   // tcc does not have cbrt()
-#define GUESS(x)  (x>=0 ? pow(x, -1/3.) : -pow(-(x), -1/3.))
+#define GUESS(x)  ({double _s=1-2*(x<0); _s * pow(_s*(x), -1/3.);})
 #endif
 
 void m_apm_cbrt(M_APM r, int places, M_APM N)
