@@ -14,7 +14,7 @@
 char buf[8192];
 char lookup[256];
 int _CRT_glob = 0;    // NO globbing
-int places    = 39;   // 40 sig digits
+int places    = 35;   // ~ binary128
 M_APM stack[MEM + 1 + TOP];
 M_APM *base = stack + MEM, *top = stack + MEM;
 
@@ -37,7 +37,6 @@ struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"/",    Mi2,m_apm_divide        },
   {"//",   MMM,m_apm_integer_divide},
   {"\\",   MiM,m_apm_reciprocal    },
-  {"_",     MM,m_apm_negate        },   // same as unix dc "_"
   {"abs",   MM,m_apm_absolute_value},
   {"acos", MiM,m_apm_acos          },
   {"acosh",MiM,m_apm_acosh         },
@@ -60,6 +59,7 @@ struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"lcm",  MMM,m_apm_lcm           },
   {"log",  MiM,m_apm_log           },
   {"log10",MiM,m_apm_log10         },
+  {"n",     MM,m_apm_negate        },
   {"p",    Mi2,m_apm_pow           },
   {"pi",   MiA,calc_pi             },
   {"sin",  MiM,m_apm_sin           },
@@ -72,7 +72,7 @@ struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"\xff", 0, NULL}};                   /*** MUST BE LAST ***/
 
 char usage[] =
-"rpn [numbers/cmds ...]    default s = 40 sig. digits\n"
+"rpn [numbers/cmds ...]    default s = 36 decimal digits\n"
 "        + : add                 sin : sin\n"
 "        - : subtract            cos : cos\n"
 "        x : multiply (*)        tan : tan\n"
@@ -80,7 +80,7 @@ char usage[] =
 "       // : integer divide     acos : arc-cos\n"
 "     %[%] : remainder/modulo   atan : arc-tan\n"
 "        \\ : flip (1/x)        atan2 : arc-tan2(y, x)\n"
-"        _ : negate (-x)        sinh : sinh\n"
+"        n : negate (-x)        sinh : sinh\n"
 "        d : dup (HP-Enter)     cosh : cosh\n"
 "   $[s|r] : swap, opt=sort     tanh : tanh\n"
 "      sqr : square            asinh : arc-sinh\n"
@@ -99,8 +99,7 @@ char usage[] =
 "     frac : fraction             m# : memory += x #=0-9,a-z\n"
 "      abs : absolute value       r# : read memory #=0-9,a-z\n"
 "     away : away from zero       s# : save memory #=0-9,a-z\n"
-"       pi : 3.1415926 ...        @# : read stack  1=top, -1=bottom";
-
+"       pi : 3.141592654...       @# : read stack  1=top, -1=bottom";
 /*******************************************************************/
 int puts(const char *s)         // puts() has bug in binary mode
 {

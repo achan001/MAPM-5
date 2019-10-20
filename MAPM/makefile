@@ -1,7 +1,7 @@
 CC = gcc -Wall -std=gnu99
 CFLAGS = -c -O2 -fwrapv $(ARG)
 MAPM_LIB = libmapm.a
-DEL = del
+DEL = rm -f
 
 all:		$(MAPM_LIB) validate.exe
 clean:;	@$(DEL) *.o
@@ -45,7 +45,6 @@ OBJS = \
 	mapm_fft.o
 
 $(MAPM_LIB): $(OBJS)
-	@echo building: $(MAPM_LIB)
 	@$(DEL) $(MAPM_LIB)
 	@ar rc $(MAPM_LIB) $(OBJS)
 	@strip --strip-unneeded $(MAPM_LIB)
