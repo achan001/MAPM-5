@@ -1,29 +1,23 @@
 #include "m_apm.h"
 
-// r = 2*AGM(a,b), assumed r ~ 1
-// Note: a,b also used for temp variables
+// r = 2*AGM(a,b), a,b also used for temp variables
 
 static void M_2xAGM(M_APM r, int places, M_APM a, M_APM b)
 {
-    M_APM s = M_get_stack_var();
+    M_APM t = M_get_stack_var();
     places += 16;
-    int tolerance = -(places/4U);
+    int tolerance = -(places/2U);   // assumed r ~ 1
 
     while (TRUE) {
-        m_apm_add(s, a, b);
-        m_apm_subtract(r, a, b);
-        if (r->m_apm_exponent < tolerance) break;
-        m_apm_multiply(r, a, b);    // do AGM
-        m_apm_sqrt(b, places, r);
-        s->m_apm_exponent -= 2;
-        M_mul_digit(a, s, 50);
+        m_apm_add(r, a, b);
+        m_apm_subtract(t, a, b);
+        if (t->m_apm_exponent <= tolerance) break;
+        m_apm_multiply(t, a, b);    // do AGM
+        m_apm_sqrt(b, places, t);
+        r->m_apm_exponent -= 2;
+        M_mul_digit(a, r, 50);
         m_apm_iround(a, places);
     }
-    M_mul_digit(r, r, 50);          // 2*AGM = s - r^2/(4s)
-    r->m_apm_exponent -= 2;
-    m_apm_square(a, r);
-    m_apm_divide(b, places + a->m_apm_exponent, a, s);
-    m_apm_subtract(r, s, b);
     M_restore_stack(1);
 }
 
