@@ -1,37 +1,38 @@
 #include "m_apm.h"
 
-// r = 2*AGM(1,b)
+// r = 2*AGM(a,b), assumed r ~ 1
+// Note: a,b also used for temp variables
 
-static void M_2xAGM1(M_APM r, int places, M_APM b)
+static void M_2xAGM(M_APM r, int places, M_APM a, M_APM b)
 {
-    M_APM a = M_get_stack_var();
-    M_APM t = M_get_stack_var();
-
-    m_apm_copy(a, MM_One);
-
+    M_APM s = M_get_stack_var();
     places += 16;
-    int tolerance = -(places/2U);
+    int tolerance = -(places/4U);
 
     while (TRUE) {
-        m_apm_add(r, a, b);
-        m_apm_subtract(t, a, b);
-        if (t->m_apm_exponent < tolerance) break;
-
-        m_apm_multiply(t, a, b);        // do AGM
-        m_apm_sqrt(b, places, t);
-        r->m_apm_exponent -= 2;
-        M_mul_digit(a, r, 50);
+        m_apm_add(s, a, b);
+        m_apm_subtract(r, a, b);
+        if (r->m_apm_exponent < tolerance) break;
+        m_apm_multiply(r, a, b);    // do AGM
+        m_apm_sqrt(b, places, r);
+        s->m_apm_exponent -= 2;
+        M_mul_digit(a, s, 50);
         m_apm_iround(a, places);
     }
-    M_restore_stack(2);
+    M_mul_digit(r, r, 50);          // 2*AGM = s - r^2/(4s)
+    r->m_apm_exponent -= 2;
+    m_apm_square(a, r);
+    m_apm_divide(b, places + a->m_apm_exponent, a, s);
+    m_apm_subtract(r, s, b);
+    M_restore_stack(1);
 }
 
 /****************************************************************************/
 
 /*
- *                Pi
- *  log10 = -----------------  + O(1/10^(2k))
- *          2k AGM(1, 4/10^k)
+ *                  Pi
+ *  log10 = ----------------- (1 + O(1/10^(2k))
+ *          2 AGM(k, 4k/10^k)
  *
  */
 
@@ -42,18 +43,17 @@ void M_check_log_places(int places)
     MM_lc_log_digits = (places += 6);
     int k = places/2U + 6;
 
-    M_APM t = M_get_stack_var();
-    M_APM x = M_get_stack_var();
-    M_APM y = M_get_stack_var();
-
-    m_apm_copy(t, MM_Four);
-    t->m_apm_exponent -= k;
-    M_2xAGM1(x, places, t);
-    m_apm_set_unsigned(t, k);
-    m_apm_multiply(y, t, x);
+    M_APM a = M_get_stack_var();
+    M_APM b = M_get_stack_var();
+    M_APM r = M_get_stack_var();
+    
+    m_apm_set_unsigned(a, k);
+    M_mul_digit(b, a, 4);
+    b->m_apm_exponent -= k;
+    M_2xAGM(r, places, a, b);   // r = 1.36437635384 ...
 
     M_check_PI_places(places);
-    m_apm_divide(MM_lc_LOG_10, places, MM_lc_PI, y);
+    m_apm_divide(MM_lc_LOG_10, places, MM_lc_PI, r);
     m_apm_reciprocal(MM_lc_LOG_10R, places, MM_lc_LOG_10);
     M_restore_stack(3);
 }
