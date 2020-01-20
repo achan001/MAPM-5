@@ -278,6 +278,8 @@ static void do_cmd(char *str)
       m_apm_add(*base, *top, stack[i]);
       SWAP(M_APM, *base, stack[i]);
       return;
+      
+    case 'q': exit(0);  // quit
 
     case 'r':           // memory READ
       if (top == base + TOP) puts("rpn: stack full");
