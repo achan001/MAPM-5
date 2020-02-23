@@ -1,5 +1,5 @@
 #include "m_apm.h"
-#include "dtoa-fast.h"
+#include "mapm-dtoa.h"
 #define ULP()   M_check_ulp(r, n2, n1, bexp)
 
 static int M_check_ulp(M_APM d, unsigned n2, unsigned n1, int bexp)
