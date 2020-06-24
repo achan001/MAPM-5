@@ -7,8 +7,8 @@
 #define Mi2   0x11    // ( MAPM, int, MAPM, MAPM )
 #define MMA   0x02    // ( MAPM, MAPM )
 #define MiA   0x12    // ( MAPM, int )
-#define MEM   36      // memories: 0-9,a-z
-#define TOP   63      // working stack
+#define MEM   37      // memories: 0-9,a-z,{
+#define TOP   62      // working stack
 #define ASIZE(a)      (sizeof(a) / sizeof(a[0]))
 
 char buf[8192];
@@ -28,16 +28,16 @@ struct opstr {
   void (*func)();
 };
 struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
-  {"!",     MM,m_apm_factorial     },
-  {"%",    MMM,calc_rem            },   // rem= @2 @2 // x -
-  {"%%",   MMM,calc_mod            },   // mod= % @ + @ %
-  {"*",    MMM,m_apm_multiply      },
+  {"!",    MM, m_apm_factorial     },
+  {"%",    MMM,calc_rem            },   // rem = @2 @2 // x -
+  {"%%",   MMM,calc_mod            },   // mod = % @ + @ %
+  {"*",    MMM,m_apm_multiply      },   // agm = sb + @- rb x sqrt $ 2/ ?s
   {"+",    MMM,m_apm_add           },
   {"-",    MMM,m_apm_subtract      },
   {"/",    Mi2,m_apm_divide        },
   {"//",   MMM,m_apm_integer_divide},
   {"\\",   MiM,m_apm_reciprocal    },
-  {"abs",   MM,m_apm_absolute_value},
+  {"abs",  MM, m_apm_absolute_value},
   {"acos", MiM,m_apm_acos          },
   {"acosh",MiM,m_apm_acosh         },
   {"asin", MiM,m_apm_asin          },
@@ -45,31 +45,31 @@ struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"atan", MiM,m_apm_atan          },
   {"atan2",Mi2,m_apm_atan2         },
   {"atanh",MiM,m_apm_atanh         },
-  {"away",  MM,m_apm_away          },
+  {"away", MM, m_apm_away          },
   {"cbrt", MiM,m_apm_cbrt          },
-  {"ceil",  MM,m_apm_ceil          },
+  {"ceil", MM, m_apm_ceil          },
   {"cos",  MiM,m_apm_cos           },
   {"cosh", MiM,m_apm_cosh          },
   {"d",    MMA,m_apm_copy          },
   {"exp",  MiM,m_apm_exp           },
-  {"floor", MM,m_apm_floor         },
-  {"frac",  MM,m_apm_fraction      },
+  {"floor",MM, m_apm_floor         },
+  {"frac", MM, m_apm_fraction      },
   {"gcd",  MMM,m_apm_gcd           },
-  {"int",   MM,m_apm_integer       },
+  {"int",  MM, m_apm_integer       },
   {"lcm",  MMM,m_apm_lcm           },
   {"log",  MiM,m_apm_log           },
   {"log10",MiM,m_apm_log10         },
-  {"n",     MM,m_apm_negate        },
+  {"n",    MM, m_apm_negate        },
   {"p",    Mi2,m_apm_pow           },
   {"pi",   MiA,calc_pi             },
   {"sin",  MiM,m_apm_sin           },
   {"sinh", MiM,m_apm_sinh          },
-  {"sqr",   MM,m_apm_square        },
+  {"sqr",  MM, m_apm_square        },
   {"sqrt", MiM,m_apm_sqrt          },
   {"tan",  MiM,m_apm_tan           },
   {"tanh", MiM,m_apm_tanh          },
   {"x",    MMM,m_apm_multiply      },
-  {"\xff", 0, NULL}};                   /*** MUST BE LAST ***/
+  {"\xff", 0  , NULL}};                 /*** MUST BE LAST ***/
 
 char usage[] =
 "rpn [numbers/cmds ...]    default s = 36 decimal digits\n"
@@ -96,10 +96,10 @@ char usage[] =
 "    floor : floor                g# : set x to # digit IEEE double\n"
 "     ceil : ceiling   [# cmds ]file : read file,  #=0-9,a-z\n"
 "      int : integer              k# : kill stack  #=0-9,a-z\n"
-"     frac : fraction             m# : memory += x #=0-9,a-z\n"
+"     frac : fraction        m[+/-]# : m+ (default) or m- x\n"
 "      abs : absolute value       r# : read memory #=0-9,a-z\n"
 "     away : away from zero       s# : save memory #=0-9,a-z\n"
-"       pi : 3.141592654...       @# : read stack  1=top, -1=bottom";
+"       pi : 3.14159 ...          @# : read stack  1=top, -1=bottom";
 /*******************************************************************/
 int puts(const char *s)         // puts() has bug in binary mode
 {
@@ -155,7 +155,7 @@ static void show_mathematica(M_APM x)
 
   *s++ = x->m_apm_sign < 0 ? '-' : '+'; // explicit sign
   s = M_to_data_str(s, x, n, 0);
-  if ((n = x->m_apm_exponent - n)) {    // Assume no overflow
+  if ((n = x->m_apm_exponent - n)) {    // assume no overflow
     *s++ = n>0 ? '*' : (n=-n, '/');     // Wolfram-Alpha ready
     *s++ = '1'; *s++ = '0'; *s++ = '^'; // avoid negative nexp
     itoa(n, s, 10);
@@ -174,9 +174,9 @@ static void show_number(M_APM x)
   free(buf);
 }
 /*******************************************************************/
-static int base36d(int c)
-{
-  if (INRANGE(c, 'a', 'z')) return c - 'a' + 10;
+static int mem_idx(int c)   // return 0 to 36
+{                           // note: '{' = 'z' + 1
+  if (INRANGE(c, 'a', '{')) return c - 'a' + 10;
   if (INRANGE(c, '0', '9')) return c - '0';
   return 0;
 }
@@ -255,63 +255,54 @@ static void do_cmd(char *str)
         if (*s1 == 0) {do_func(&cmds[i]); return;}
     } while (c == cmds[++i].name[0]);
 
-  switch (c) {          // special commands or number
-
-    case 'f':           // fixpt rounding
-      m_apm_iround_fixpt(*top, strtol(s, NULL, 10));
-      return;
-
-    case 'g':           // replace with IEEE double
-      i = strtol(s, NULL, 10);
-      M_set_double(*top, m_apm_to_double(*top), i-1);
-      return;
+  switch (c) {          // special commands
 
     case 'h': puts(usage); return;
-
-    case 'k':           // kill stack
-      i = base36d(*s);
-      top = (i==0 || top<=base+i) ? base : top - i;
-      return;
-
-    case 'm':           // memory ADD
-      i = base36d(*s);
-      m_apm_add(*base, *top, stack[i]);
-      SWAP(M_APM, *base, stack[i]);
-      return;
-      
     case 'q': exit(0);  // quit
 
     case 'r':           // memory READ
       if (top == base + TOP) puts("rpn: stack full");
-      else m_apm_copy(*++top, stack[base36d(*s)]);
+      else m_apm_copy(*++top, stack[mem_idx(*s)]);
       return;
 
     case 's':           // memory SAVE
-      m_apm_copy(stack[base36d(*s)], *top);
+      m_apm_copy(stack[mem_idx(*s)], *top);
+      return;
+
+    case 'm': {         // m+ or m-
+      void (*f)() = m_apm_add;          // default = m+
+      switch (*s) {
+        case '-': f = m_apm_subtract;   // fall thru
+        case '+': s++;                  // fall thru
+      }
+      i = mem_idx(*s);
+      f(*base, stack[i], *top);         // add/subtract
+      SWAP(M_APM, *base, stack[i]);
+      return;
+    }
+
+    case 'k':           // kill stack
+      i = mem_idx(*s);  // k = kill all
+      top = (i==0 || top<=base+i) ? base : top - i;
       return;
 
     case '$':           // swap stack
-      i = (*s-'s')*2+1; // 's' -> +1, 'r' -> -1
+      i = (*s-'s')*2+1; // $s = sorted, $r = reverse sorted
       if (top <= base + 1) {puts("rpn: need x and y"); return;}
       if (*s && abs(i)!=1) {puts("rpn: swap error"); return;}
       if (*s && (m_apm_compare(top[-1], top[0]) != i)) return;
       SWAP(M_APM, top[-1], top[0]);
       return;
 
-    case '@':           // stack access, 1 = top, -1 = bottom
+    case '@':           // stack access: +1=top, -1=bottom
       if (top == base + TOP) {puts("rpn: stack full"); return;}
-      i = base36d(s[*s == '-']);
-      if (++top, *s == '-') i = top - base - i;
+      i = mem_idx(s[*s == '-' || *s == '+']);   // @  = LASTY
+      if (++top, *s == '-') i = top - base - i; // @- = LASTX
       if (i != 0) m_apm_copy(*top, top[-i]);
       return;
 
-    case '=':           // set and round sig digits
-      i = strtol(s, NULL, 10);
-      if (i>0) places = i-1;
-      m_apm_iround(*top, i>=0 ? places : ~i);
-      return;
-
-    case '?':           // show top MAPM number
+    case '?':           // show stuff ...
+      if (*s == '#') {puts(s+1); return;}       // skip '#'
       if (top == base) {puts("rpn: stack empty"); return;}
       switch(*s) {
         case 'i': show_rint(*top, s + 1); return;
@@ -319,7 +310,7 @@ static void do_cmd(char *str)
         case 'l': show_length(*top); return;
         case 's': for(M_APM *p=base; ++p < top;) show_number(*p);
                   // fall thru
-        case '?': show_number(*top); return;
+        case '?': show_number(*top); return;    // no round
       }
       i = strtol(s, &s, 10);
       if (*s) puts("rpn: bad sig. digits");
@@ -327,15 +318,29 @@ static void do_cmd(char *str)
       show_number(*base);
       return;
 
-    case '-':
-    case '+': s++;      // skip sign for hex-float
+    // note: =#, f#, g# does inplace update
+
+    case '=':           // round sig digits
+      i = strtol(s, NULL, 10);  // set default if i>0
+      m_apm_iround(*top, i>0 ? (places = i-1)
+                      : i==0 ? places : -i-1); return;
+
+    case 'f':           // fixpt rounding, negative OK
+      m_apm_iround_fixpt(*top, strtol(s, NULL, 10)); return;
+
+    case 'g':           // replace with IEEE double
+      i = strtol(s, NULL, 10);  // assumed i >= 0
+      M_set_double(*top, m_apm_to_double(*top), i-1); return;
+
+    case '+':
+    case '-': s++;      // skip sign for possibly hex-float
   }
 
-  if (top == base + TOP) {        // must be a number
+  if (top == base + TOP) {
     puts("rpn: stack full");
   } else if ((s[0]|32)=='x' && s[-1]=='0') {
-    hex_float(*++top, s+1);
-    if (c == '-') (*top)->m_apm_sign *= -1;
+    hex_float(*++top, s+1);       // unsigned hex-float
+    if (c == '-') (*top)->m_apm_sign *= -1; // add sign
   } else {
     M_set_string(*++top, str, &s);
     if (s == str) --top, printf("rpn: Bad command [%s]\n", s);
@@ -360,14 +365,14 @@ static void do_file_cmds(FILE *f, int skip, int neg, char **post_cmds)
     if (n++ >= 0)
       for(int i=neg; i; i++) do_cmd(post_cmds[i]);
   }
-  m_apm_set_unsigned(base[-1], n+skip); // lines read -> MemZ
+  m_apm_set_unsigned(base[-1], n+skip); // lines read -> Mem{
 }
 /*******************************************************************/
 static void rpn_setup()
 {
   setmode(STDIN_FILENO, _O_BINARY);
   setmode(STDOUT_FILENO, _O_BINARY);
-  memset(lookup, -4, sizeof(lookup));
+  memset(lookup, -4, sizeof(lookup));   // build lookup table
   lookup[ '#'] = -3;
   lookup['\0'] = -2;
   lookup[ ' '] = lookup['\t'] = lookup['\n'] = -1;
@@ -385,7 +390,7 @@ int main(int argc, char **argv)
   for(int i=(argc>1); i<argc; i++) {
     if (argv[i][0] == '#') continue;    // skip comments
     if (argv[i][0] != '[') {do_cmd(clean(argv[i])); continue;}
-    int skip = base36d(argv[i][1]);     // parse post cmds
+    int skip = mem_idx(argv[i][1]);     // parse post cmds
     int j = ++i;
     while(i<argc && argv[i][0]!=']') clean(argv[i++]) ;
     FILE *f = stdin;
