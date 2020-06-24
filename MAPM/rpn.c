@@ -296,8 +296,8 @@ static void do_cmd(char *str)
 
     case '@':           // stack access: +1=top, -1=bottom
       if (top == base + TOP) {puts("rpn: stack full"); return;}
-      i = mem_idx(s[*s == '-' || *s == '+']);   // @  = LASTY
-      if (++top, *s == '-') i = top - base - i; // @- = LASTX
+      i = mem_idx(s[*s == '-' || *s == '+']);
+      if (++top, *s == '-') i = top - base - i;
       if (i != 0) m_apm_copy(*top, top[-i]);
       return;
 
