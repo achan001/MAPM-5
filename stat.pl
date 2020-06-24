@@ -2,7 +2,7 @@
 # assumed all numbers are valid (hex-float ok)
 
 if ($ARGV[0] eq '-x') {
-    $cmd = '0 [ m sqr + ] rz x r sqr - rz / r rz / rz';
+    $cmd = '0 [ m sqr + ] r{ x r sqr - r{ / r r{ / r{';
     $pipe = '<' . pop @ARGV if $ARGV[1];
     ($M2, $mean, $n) = `rpn $cmd $pipe`;
     goto DONE;
