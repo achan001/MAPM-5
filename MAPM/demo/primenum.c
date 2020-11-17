@@ -212,7 +212,7 @@ m_apm_integer_div_rem(M_quot, M_rem, input, MM_Five);
 if (m_apm_sign(M_rem) == 0)
   return(ret);
 
-m_apm_set_long(M_digit, 7L);
+m_apm_set_int(M_digit, 7);
 m_apm_integer_div_rem(M_quot, M_rem, input, M_digit);
 if (m_apm_sign(M_rem) == 0)
   return(ret);
@@ -222,7 +222,7 @@ ii = m_apm_exponent(input) + 16;
 m_apm_sqrt(M_tmp1, ii, input);
 m_apm_add(M_limit, MM_Two, M_tmp1);
    
-m_apm_set_long(M_digit, 11L);              /* now start at '11' to check */
+m_apm_set_int(M_digit, 11);              /* now start at '11' to check */
    
 while (TRUE)
   {
@@ -237,7 +237,7 @@ while (TRUE)
    if (m_apm_sign(M_rem) == 0)         /* remainder == 0 */
      break;
    
-   m_apm_set_long(M_tmp1, (long)incr_table[index]);
+   m_apm_set_int(M_tmp1, (int)incr_table[index]);
    m_apm_add(M_tmp0, M_digit, M_tmp1);
    m_apm_copy(M_digit, M_tmp0);
 

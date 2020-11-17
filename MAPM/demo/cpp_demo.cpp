@@ -167,59 +167,59 @@ void testMAPMcppRoutines(double x)
 
 	printf("-------------------------\nFor x=%f:\n",x);
 #define fmt "%.13f = %s\n"
-	compare("x+0       "fmt,x+0,m+0);
-	compare("x+1       "fmt,x+1,m+1);
-	compare("3+x       "fmt,3+x,3+m);
-	compare("2+(-x)    "fmt,2+(-x),2+(-m));
-	compare("x-3.2     "fmt,x-3.2,m-3.2);
-	compare("x-3.2 (as string) "fmt,x-3.2,m-"3.2");
-	compare("3.2+(-x)  "fmt,3.2+(-x),3.2+(-m));
-	compare("1.5*x     "fmt,1.5*x,1.5*m);
-	compare("2/x       "fmt,2/x,2/m);
+	compare("x+0       " fmt,x+0,m+0);
+	compare("x+1       " fmt,x+1,m+1);
+	compare("3+x       " fmt,3+x,3+m);
+	compare("2+(-x)    " fmt,2+(-x),2+(-m));
+	compare("x-3.2     " fmt,x-3.2,m-3.2);
+	compare("x-3.2 (as string) " fmt,x-3.2,m-"3.2");
+	compare("3.2+(-x)  " fmt,3.2+(-x),3.2+(-m));
+	compare("1.5*x     " fmt,1.5*x,1.5*m);
+	compare("2/x       " fmt,2/x,2/m);
 	int y=(int)(6+10*x+0.5);
 	MAPM n=6+10*m;
-	compare("y=6+10*x  "fmt,y,n);
-	compare("y div 2   "fmt,y/2,n.div(2));
-	compare("y mod 2   "fmt,y%2,n.rem(2));
-	compare("y div -3  "fmt,y/-3,n.div(-3));
-	compare("y mod -3  "fmt,y%-3,n.rem(-3));
-	compare("-y div 3  "fmt,(-y)/-3,(-n).div(-3));
-	compare("-y mod 3  "fmt,(-y)%-3,(-n).rem(-3));
+	compare("y=6+10*x  " fmt,y,n);
+	compare("y div 2   " fmt,y/2,n.div(2));
+	compare("y mod 2   " fmt,y%2,n.rem(2));
+	compare("y div -3  " fmt,y/-3,n.div(-3));
+	compare("y mod -3  " fmt,y%-3,n.rem(-3));
+	compare("-y div 3  " fmt,(-y)/-3,(-n).div(-3));
+	compare("-y mod 3  " fmt,(-y)%-3,(-n).rem(-3));
 
-	compare("fabs(x)   "fmt,fabs(x),fabs(m));
-	compare("sin(x)    "fmt,sin(x),sin(m));
-	compare("x.sin()   "fmt,sin(x),m.sin());
-	compare("cos(x)    "fmt,cos(x),cos(m));
-	compare("tan(x)    "fmt,tan(x),tan(m));
-	compare("cbrt(x)   "fmt,cbrt_local(x),cbrt(m));
-	compare("sinh(x)   "fmt,sinh(x),sinh(m));
-	compare("cosh(x)   "fmt,cosh(x),cosh(m));
-	compare("tanh(x)   "fmt,tanh(x),tanh(m));
-	compare("asinh(x)  "fmt,asinh_local(x),asinh(m));
+	compare("fabs(x)   " fmt,fabs(x),fabs(m));
+	compare("sin(x)    " fmt,sin(x),sin(m));
+	compare("x.sin()   " fmt,sin(x),m.sin());
+	compare("cos(x)    " fmt,cos(x),cos(m));
+	compare("tan(x)    " fmt,tan(x),tan(m));
+	compare("cbrt(x)   " fmt,cbrt_local(x),cbrt(m));
+	compare("sinh(x)   " fmt,sinh(x),sinh(m));
+	compare("cosh(x)   " fmt,cosh(x),cosh(m));
+	compare("tanh(x)   " fmt,tanh(x),tanh(m));
+	compare("asinh(x)  " fmt,asinh_local(x),asinh(m));
 
 	if (fabs(m) < 1)
 	  {
-           compare("asin(x)   "fmt,asin(x),asin(m));
-	   compare("acos(x)   "fmt,acos(x),acos(m));
-	   compare("atan(x)   "fmt,atan(x),atan(m));
-	   compare("atan2(x,-0.5)"fmt,atan2(x,-0.5),atan2(m,-0.5));
-           compare("atanh(x)  "fmt,atanh_local(x),atanh(m));
+           compare("asin(x)   " fmt,asin(x),asin(m));
+	   compare("acos(x)   " fmt,acos(x),acos(m));
+	   compare("atan(x)   " fmt,atan(x),atan(m));
+	   compare("atan2(x,-0.5)" fmt,atan2(x,-0.5),atan2(m,-0.5));
+           compare("atanh(x)  " fmt,atanh_local(x),atanh(m));
 	  }
 
 	if (m >= 1)
-           compare("acosh(x)  "fmt,acosh_local(x),acosh(m));
+           compare("acosh(x)  " fmt,acosh_local(x),acosh(m));
 
 	if (m > 0)
 	  {
-	   compare("sqrt(x)   "fmt,sqrt(x),sqrt(m));
-	   compare("log(x)    "fmt,log(x),log(m));
-	   compare("pow(x,-2.93)"fmt,pow(x,-2.93),pow(m,-2.93));
-	   compare("x.pow(-2.93)"fmt,pow(x,-2.93),m.pow(-2.93));
+	   compare("sqrt(x)   " fmt,sqrt(x),sqrt(m));
+	   compare("log(x)    " fmt,log(x),log(m));
+	   compare("pow(x,-2.93)" fmt,pow(x,-2.93),pow(m,-2.93));
+	   compare("x.pow(-2.93)" fmt,pow(x,-2.93),m.pow(-2.93));
 	  }
 
-	compare("x.pow(2)  "fmt,pow(x,2),m.ipow(2));
-	compare("x.pow(-3) "fmt,pow(x,-3),m.ipow(-3));
-	compare("exp(x)    "fmt,exp(x),exp(m));
+	compare("x.pow(2)  " fmt,pow(x,2),m.ipow(2));
+	compare("x.pow(-3) " fmt,pow(x,-3),m.ipow(-3));
+	compare("exp(x)    " fmt,exp(x),exp(m));
 
 	MAPM r1, r2;
 	r1 = get_random();
