@@ -21,7 +21,7 @@ void M_apm_log(M_APM r, int places, M_APM x)
   M_log_basic_iteration(tmp0, places, x);
   x->m_apm_exponent = xexp;     /* restore x */
 
-  m_apm_set_long(r, xexp - base);
+  m_apm_set_int(r, xexp - base);
   M_check_log_places(places);
   m_apm_multiply(tmp1, r, MM_lc_LOG_10);
 

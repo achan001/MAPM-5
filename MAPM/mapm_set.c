@@ -36,7 +36,7 @@ void m_apm_set_unsigned(M_APM r, unsigned n)
   M_set_samesign(r, n);
 }
 /****************************************************************************/
-void m_apm_set_long(M_APM r, int n)
+void m_apm_set_int(M_APM r, int n)
 {
   r->m_apm_sign = 1 | (n >> 31);
   M_set_samesign(r, r->m_apm_sign * n);

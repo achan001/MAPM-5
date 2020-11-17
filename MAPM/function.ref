@@ -180,12 +180,12 @@ void m_apm_set_unsigned(M_APM r, unsigned n);
     set r = MAPM value of n (n >= 0)
 
 -----------------------------------------------------------------------------
-void m_apm_set_long(M_APM r, long n)
+void m_apm_set_int(M_APM r, int n)
 
     set r = MAPM value of n (n can be negative)
 
-    Both m_apm_set_long and m_apm_set_unsigned set the sign of r first,
-    then call M_set_samesign() which will keep the sign, unless it is zero
+    Both m_apm_set_int and m_apm_set_unsigned set the sign of r first,
+    then call M_set_samesign(), which keep the sign, unless it is zero
 
 -----------------------------------------------------------------------------
 

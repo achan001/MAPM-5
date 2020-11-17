@@ -1633,7 +1633,7 @@ mapm2 = m_apm_init();
 
 for (i=0; i <= 15; i++)
   {
-   m_apm_set_long(mapmi, i);
+   m_apm_set_int(mapmi, i);
 
    factorial_local(mapm2, mapmi);
    m_apm_factorial(mapm1, mapmi);
@@ -1890,7 +1890,7 @@ for (i=0; i < 2; i++)
 
    m_apm_atan(mapm1, (dplaces + 8), mapm2);
 
-   m_apm_set_long(mapm2, 12L);
+   m_apm_set_int(mapm2, 12);
    m_apm_multiply(mapmt, mapm1, mapm2);
    m_apm_round(mapm1, dplaces, mapmt);
 
@@ -2289,7 +2289,7 @@ mapmr = m_apm_init();
 pass  = 0;
 
 m_apm_set_string(mapm0, "26.90253936868423");
-m_apm_set_long(mapmr, 26L);
+m_apm_set_int(mapmr, 26);
 
 ict = 50;
 
@@ -2829,7 +2829,7 @@ if (m_apm_compare(mapm2, MM_One) != 0)
   }
 
 m_apm_negate(mapm6, mapm3);
-m_apm_set_long(mapm5, -1L);
+m_apm_set_int(mapm5, -1);
 m_apm_divide(mapm2, (digits + 6), mapm6, mapm3);   /* n / n == 1 */
 
 if (m_apm_compare(mapm2, mapm5) != 0)

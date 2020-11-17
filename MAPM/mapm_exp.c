@@ -31,7 +31,7 @@ void M_apm_exp(M_APM r, int places, M_APM x)
       return;
     }
     n = lrint(m_apm_to_double(x) * M_LOG10E);
-    m_apm_set_long(y, n);
+    m_apm_set_int(y, n);
     M_check_log_places(places);   // x = y + n log10
     m_apm_multiply(r, y, MM_lc_LOG_10);
     m_apm_subtract(y, x, r);      // |y| <= log10 / 2 = 1.15

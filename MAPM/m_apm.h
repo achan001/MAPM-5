@@ -96,7 +96,7 @@ void    m_apm_trim_mem_usage(void);
 char    *m_apm_lib_version(char *);
 char    *m_apm_lib_short_version(char *);
 
-void    m_apm_set_long(M_APM r, int n);
+void    m_apm_set_int(M_APM r, int n);
 void    m_apm_set_unsigned(M_APM r, unsigned n);
 void    m_apm_set_uint64_t(M_APM r, uint64_t n);
 void    M_set_double(M_APM r, double x, int places);
@@ -345,8 +345,7 @@ public:
   MAPM(const MAPM &m) {myVal=(M_APM)m.cval();ref(myVal);}
   MAPM(M_APM m)       {myVal=(M_APM)m;ref(myVal);}
   MAPM(const char *s) {create();m_apm_set_string(val(),(char *)s);}
-  MAPM(int l)         {create();m_apm_set_long(val(),l);}
-  MAPM(long l)        {create();m_apm_set_long(val(),l);}
+  MAPM(int l)         {create();m_apm_set_int(val(),l);}
   MAPM(unsigned l)    {create();m_apm_set_unsigned(val(),l);}
   MAPM(uint64_t l)    {create();m_apm_set_uint64_t(val(),l);}
   MAPM(int64_t l)     {create(); int64_t n = l<0 ? -l : l;
@@ -380,9 +379,7 @@ public:
   MAPM &operator=(double d) /* Assigment operator */
     {m_apm_set_double(val(),d);return *this;}
   MAPM &operator=(int l) /* Assigment operator */
-    {m_apm_set_long(val(),l);return *this;}
-  MAPM &operator=(long l) /* Assigment operator */
-    {m_apm_set_long(val(),l);return *this;}
+    {m_apm_set_int(val(),l);return *this;}
   MAPM operator++() /* Prefix increment operator */
     {return *this = *this+MM_One;}
   MAPM operator--() /* Prefix decrement operator */

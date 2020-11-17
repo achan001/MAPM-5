@@ -135,7 +135,7 @@ void m_apm_integer_divide(M_APM r, M_APM a, M_APM b)
 {
   switch (m_apm_compare_absolute(b, a)) {
     case 1 : M_set_to_zero(r); return;
-    case 0 : m_apm_set_long(r, a->m_apm_sign * b->m_apm_sign);
+    case 0 : m_apm_set_int(r, a->m_apm_sign * b->m_apm_sign);
              if (b->m_apm_sign) return; // ok if not div by 0
   }
   int places = a->m_apm_exponent - b->m_apm_exponent;
