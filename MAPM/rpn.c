@@ -51,6 +51,7 @@ struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"cos",  MiM,m_apm_cos           },
   {"cosh", MiM,m_apm_cosh          },
   {"d",    MMA,m_apm_copy          },
+  {"dup",  MMA,m_apm_copy          },
   {"exp",  MiM,m_apm_exp           },
   {"floor",MM, m_apm_floor         },
   {"frac", MM, m_apm_fraction      },
@@ -60,8 +61,10 @@ struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"log",  MiM,m_apm_log           },
   {"log10",MiM,m_apm_log10         },
   {"n",    MM, m_apm_negate        },
+  {"neg",  MM, m_apm_negate        },
   {"p",    Mi2,m_apm_pow           },
   {"pi",   MiA,calc_pi             },
+  {"pow",  Mi2,m_apm_pow           },
   {"sin",  MiM,m_apm_sin           },
   {"sinh", MiM,m_apm_sinh          },
   {"sqr",  MM, m_apm_square        },
@@ -77,20 +80,20 @@ char usage[] =
 "        - : subtract            cos : cos\n"
 "        x : multiply (*)        tan : tan\n"
 "        / : divide             asin : arc-sin\n"
-"       // : integer divide     acos : arc-cos\n"
-"     %[%] : remainder/modulo   atan : arc-tan\n"
-"        \\ : flip (1/x)        atan2 : arc-tan2(y, x)\n"
-"        n : negate (-x)        sinh : sinh\n"
-"        d : dup (HP-Enter)     cosh : cosh\n"
-"   $[s|r] : swap, opt=sort     tanh : tanh\n"
-"      sqr : square            asinh : arc-sinh\n"
-"     sqrt : square root       acosh : arc-cosh\n"
-"     cbrt : cube root         atanh : arc-tanh\n"
-"        p : y ^ x            ?[?|s] : show stack(s), no rounding\n"
-"      exp : e ^ x                ?# : show x rounded to # digits\n"
-"      log : log(e)               ?m : show x in mathematica form\n"
-"    log10 : log10                ?l : show x len of digits\n"
-"        ! : factorial           ?i# : show rounded integer, #=add comma\n"
+"        \\ : flip (1/x)         acos : arc-cos\n"
+"        ! : factorial          atan : arc-tan\n"
+"       // : integer divide    atan2 : arc-tan2(y, x)\n"
+"   % / %% : fmod / mod         sinh : sinh\n"
+"   $[s|r] : swap, opt=sort     cosh : cosh\n"
+"      sqr : square             tanh : tanh\n"
+"     sqrt : square root       asinh : arc-sinh\n"
+"     cbrt : cube root         acosh : arc-cosh\n"
+"    n=neg : negate            atanh : arc-tanh\n"
+"    d=dup : dup stack        ?[?|s] : show stack(s), no rounding\n"
+"    p=pow : y ^ x                ?# : show x rounded to # digits\n"
+"      exp : e ^ x                ?m : show x in mathematica form\n"
+"      log : log(e)               ?l : show x len of digits\n"
+"    log10 : log10               ?i# : show rounded integer, #=add comma\n"
 "      gcd : gcd                  =# : set s=#, x rounded to s digits\n"
 "      lcm : lcm                  f# : set x to # fixpt precision\n"
 "    floor : floor                g# : set x to # digit IEEE double\n"
