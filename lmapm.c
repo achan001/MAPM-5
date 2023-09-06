@@ -410,6 +410,16 @@ static int Bpowmod(lua_State *L)
  return 1;
 }
 
+static int Bmantissa(lua_State *L)			/* mantissa(x) */
+{
+ return Bdo0(L,m_apm_mantissa);
+}
+
+static int Bgcd(lua_State *L)			/** gcd(x,y) */
+{
+ return Bdo2(L,m_apm_gcd);
+}
+
 static const luaL_Reg R[] =
 {
 	{ "__add",	Badd	},
@@ -443,6 +453,7 @@ static const luaL_Reg R[] =
 	{ "exponent",	Bexponent},
 	{ "factorial",	Bfactorial},
 	{ "floor",	Bfloor	},
+	{ "gcd",	Bgcd	},
 	{ "idiv",	Bidiv	},
 	{ "inv",	Binv	},
 	{ "iseven",	Biseven	},
@@ -450,6 +461,7 @@ static const luaL_Reg R[] =
 	{ "isodd",	Bisodd	},
 	{ "log",	Blog	},
 	{ "log10",	Blog10	},
+	{ "mantissa",	Bmantissa},
 	{ "mod",	Bmod	},
 	{ "mul",	Bmul	},
 	{ "neg",	Bneg	},
