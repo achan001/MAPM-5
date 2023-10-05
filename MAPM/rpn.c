@@ -29,9 +29,9 @@ struct opstr {
 };
 struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"!",    MM, m_apm_factorial     },
-  {"%",    MMM,calc_rem            },   // rem = @2 @2 // x -
-  {"%%",   MMM,calc_mod            },   // mod = % @ + @ %
-  {"*",    MMM,m_apm_multiply      },   // agm = sb + @- rb x sqrt $ 2/ ?s
+  {"%",    MMM,calc_rem            },   // rem = @-2 @-2 // x -
+  {"%%",   MMM,calc_mod            },   // mod = % @- + @- %
+  {"*",    MMM,m_apm_multiply      },   // agm = sb + @ rb x sqrt $ 2/ ?s
   {"+",    MMM,m_apm_add           },
   {"-",    MMM,m_apm_subtract      },
   {"/",    Mi2,m_apm_divide        },
@@ -102,7 +102,7 @@ char usage[] =
 "     frac : fraction        m[+/-]# : m+ (default) or m- x\n"
 "      abs : absolute value       r# : read memory #=0-9,a-z\n"
 "     away : away from zero       s# : save memory #=0-9,a-z\n"
-"       pi : 3.14159 ...          @# : read stack  1=top, -1=bottom";
+"       pi : 3.14159 ...          @# : read stack  1=bottom, -1=top";
 /*******************************************************************/
 int puts(const char *s)         // puts() has bug in binary mode
 {
@@ -297,10 +297,10 @@ static void do_cmd(char *str)
       SWAP(M_APM, top[-1], top[0]);
       return;
 
-    case '@':           // stack access: +1=top, -1=bottom
+    case '@':           // "lua" get stack: 1=bottom, -1=top
       if (top == base + TOP) {puts("rpn: stack full"); return;}
       i = mem_idx(s[*s == '-' || *s == '+']);
-      if (++top, *s == '-') i = top - base - i;
+      if (++top, *s != '-') i = top - base - i;
       if (i != 0) m_apm_copy(*top, top[-i]);
       return;
 
