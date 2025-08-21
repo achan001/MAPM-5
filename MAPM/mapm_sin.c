@@ -146,16 +146,17 @@ void M_625x_cos(M_APM r, int places, M_APM x)
 void M_sin_cos(M_APM sinv, M_APM cosv, int places, M_APM aa)
 {
     M_APM t = M_get_stack_var();
-    M_limit_angle_to_pi(t, (places + 6), aa);
-    M_625x_cos(cosv, places + 2, t);
+    int places2 = places*2 + 6;
+    M_limit_angle_to_pi(t, places2, aa);
+    M_625x_cos(cosv, places2, t);
     if (m_apm_compare_absolute(cosv, MM_0_99995) >= 0) {
-      M_625x_sin(sinv, places, t);
+      M_625x_sin(sinv, places2, t);
     } else {
-      M_sin_to_cos(sinv, places, cosv, FALSE);
+      M_sin_to_cos(sinv, places2, cosv, FALSE);
       sinv->m_apm_sign = t->m_apm_sign;
     }
-    m_apm_iround(sinv, places + 4);
-    m_apm_iround(cosv, places + 4);
+    m_apm_iround(sinv, places + 6);
+    m_apm_iround(cosv, places + 6);
     M_restore_stack(1);
 }
 /****************************************************************************/
@@ -176,8 +177,9 @@ void M_sin_to_cos(M_APM r, int places, M_APM a, int flip)
 void m_apm_sin(M_APM r, int places, M_APM a)
 {
     M_APM t = M_get_stack_var();
-    M_limit_angle_to_pi(t, (places + 6), a);
-    M_625x_sin(r, places, t);
+    int places2 = places*2 + 6;    
+    M_limit_angle_to_pi(t, places2, a);
+    M_625x_sin(r, places2, t);
     m_apm_iround(r, places);
     M_restore_stack(1);
 }
@@ -185,8 +187,9 @@ void m_apm_sin(M_APM r, int places, M_APM a)
 void m_apm_cos(M_APM r, int places, M_APM a)
 {
     M_APM t = M_get_stack_var();
-    M_limit_angle_to_pi(t, (places + 6), a);
-    M_625x_cos(r, places, t);
+    int places2 = places*2 + 6;        
+    M_limit_angle_to_pi(t, places2, a);
+    M_625x_cos(r, places2, t);
     m_apm_iround(r, places);
     M_restore_stack(1);
 }
