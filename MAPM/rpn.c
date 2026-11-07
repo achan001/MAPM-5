@@ -21,6 +21,7 @@ M_APM *base = stack + MEM, *top = stack + MEM;
 static void calc_pi(M_APM r, int places);
 static void calc_rem(M_APM r, M_APM x, M_APM y);
 static void calc_mod(M_APM r, M_APM x, M_APM y);
+static void calc_smod(M_APM r, M_APM x, M_APM y);
 
 struct opstr {
   UCHAR name[8];
@@ -28,10 +29,11 @@ struct opstr {
   void (*func)();
 };
 struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
-  {"!",    MM, m_apm_factorial     },
+  {"!",    MM, m_apm_factorial     },   // agm = sb + @ rb x sqrt $ 2/ ?s
   {"%",    MMM,calc_rem            },   // rem = @-2 @-2 // x -
   {"%%",   MMM,calc_mod            },   // mod = % @- + @- %
-  {"*",    MMM,m_apm_multiply      },   // agm = sb + @ rb x sqrt $ 2/ ?s
+  {"%s",   MMM,calc_smod           },
+  {"*",    MMM,m_apm_multiply      },
   {"+",    MMM,m_apm_add           },
   {"-",    MMM,m_apm_subtract      },
   {"/",    Mi2,m_apm_divide        },
@@ -60,13 +62,16 @@ struct opstr cmds[] = {                 /*** MUST BE SORTED ***/
   {"lcm",  MMM,m_apm_lcm           },
   {"log",  MiM,m_apm_log           },
   {"log10",MiM,m_apm_log10         },
+  {"mod",  MMM,calc_mod            },
   {"n",    MM, m_apm_negate        },
   {"neg",  MM, m_apm_negate        },
   {"p",    Mi2,m_apm_pow           },
   {"pi",   MiA,calc_pi             },
   {"pow",  Mi2,m_apm_pow           },
+  {"rem",  MMM,calc_rem            },
   {"sin",  MiM,m_apm_sin           },
   {"sinh", MiM,m_apm_sinh          },
+  {"smod", MMM,calc_smod           },
   {"sqr",  MM, m_apm_square        },
   {"sqrt", MiM,m_apm_sqrt          },
   {"tan",  MiM,m_apm_tan           },
@@ -83,7 +88,7 @@ char usage[] =
 "        \\ : flip (1/x)         acos : arc-cos\n"
 "        ! : factorial          atan : arc-tan\n"
 "       // : integer divide    atan2 : arc-tan2(y, x)\n"
-"   % / %% : fmod / mod         sinh : sinh\n"
+"  %/%%/%s : rem/mod/smod       sinh : sinh\n"
 "   $[s|r] : swap, opt=sort     cosh : cosh\n"
 "      sqr : square             tanh : tanh\n"
 "     sqrt : square root       asinh : arc-sinh\n"
@@ -126,6 +131,19 @@ static void calc_mod(M_APM r, M_APM x, M_APM y)
     m_apm_add(r, t, y);     // match sign of y
     M_restore_stack(1);
   }
+}
+/*******************************************************************/
+static void calc_smod(M_APM r, M_APM x, M_APM y)
+{
+  M_APM q = M_get_stack_var();
+  M_APM r2 = M_get_stack_var();
+  m_apm_integer_div_rem(q, r, x, y);
+  M_sub_samesign(r2, r, y);
+  switch (m_apm_compare_absolute(r2, r)) {
+    case  0: if (m_apm_is_even(q)) break;
+    case -1: m_apm_copy(r, r2);
+  }
+  M_restore_stack(2);
 }
 /*******************************************************************/
 static void calc_pi(M_APM r, int p)
