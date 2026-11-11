@@ -20,7 +20,7 @@
 #define BIT96(s)        EPRINT(E_FMT, n2,n1,n0,bexp-BIAS,s)
 
 #define BIAS      1021          // x = 0x.ddddd ... p(bexp-BIAS)
-#define HOLE      ~98U          // accuracy of 96-bits
+#define HOLE      ~99U          // accuracy of 96-bits
 #define FASTPATH  (BIAS + 89)   // speedup strtod_ulp()
 #define ERR       0x1p-35       // frac 35+ bits accurate
 #define LAST      19            // dtoa_case last digit idx
